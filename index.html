@@ -1,0 +1,812 @@
+<!-- 
+    - Lack of internet
+-->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paper to Moxfield Deck Uploader</title>
+    <link rel="icon" type="image/x-icon" href="https://images.ctfassets.net/s5n2t79q9icq/3egwuCGbsz0dAQjFiwyfta/fc388da733a1daa7545c68fc092ae2f8/card-comparison.svg?fm=webp">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+    />
+    <script src="model.js"></script>
+    <style>
+      .container {
+        width: 80%;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      p {
+        margin-bottom: 5px;
+      }
+      .card {
+        background-color: #19222c;
+        border-radius: 12.5px;
+        height: 350px;
+        width: 250px;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+      }
+      .card.svg {
+        position: relative;
+        z-index: 0;
+      }
+      img {
+        z-index: 1;
+        border-radius: 12.5px;
+      }
+      img.foil {
+        mask: linear-gradient(135deg, #000c 40%, #000, #000c 60%) 100% 100%/ /* initial position, bottom-right */
+          240% 240%; /* width and height */
+        animation: shine 4s;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+      }
+      @keyframes shine {
+        50% {
+          mask-position: 0 0;
+        }
+      }
+
+      #error {
+        color: rgb(223, 27, 27);
+        font-size: smaller;
+      }
+      .main {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+      }
+      .menu {
+        display: flex;
+        justify-content: space-between;
+        flex-direction: column;
+        height: 320px;
+        margin-left: 20px;
+      }
+      .menu button {
+        display: flex;
+        position: relative; /* for tooltips */
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: var(--primary);
+      }
+      button.foil {
+        background-color: var(--secondary);
+      }
+
+      #notification {
+        opacity: 0%;
+        z-index: 5;
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        top: 0px;
+        width: 100%;
+      }
+      #notificationText {
+        margin: auto;
+        background-color: var(--card-sectionning-background-color);
+        padding: 20px;
+        display: inline;
+        border-radius: 10px;
+        text-align: center;
+      }
+      .notificationContainer {
+        width: 100%;
+      }
+      .notificationAnimation {
+        animation: reveal 2s;
+      }
+      @keyframes reveal {
+        0% {
+          top: 0px;
+          opacity: 0%;
+        }
+        10%,
+        90% {
+          top: 30px;
+          opacity: 100%;
+        }
+        100% {
+          top: 0px;
+          opacity: 0%;
+        }
+      }
+
+      dialog article {
+        width: 100%;
+      }
+      #allPrints {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        flex-wrap: wrap;
+      }
+      #allPrints img {
+        width: 200px;
+        margin: 5px;
+      }
+      #allPrints img:hover {
+        outline: 1px solid var(--primary);
+      }
+
+      #cardSearch,
+      #cardSearchAutoComplete {
+        width: 80%;
+        display: block;
+        margin: 0px auto;
+      }
+      #cardSearchAutoComplete {
+        overflow-y: auto;
+        height: 300px;
+        display: flex;
+        flex-direction: column;
+      }
+      #cardSearchAutoComplete div {
+        background-color: var(--card-background-color);
+        padding: 10px;
+      }
+      #cardSearchAutoComplete div:hover {
+        background-color: var(--primary);
+      }
+      #search-model article {
+        height: 600px;
+      }
+
+      .toolTip {
+        padding: 8px;
+        display: inline-block;
+        width: max-content;
+        background-color: var(--card-background-color);
+        font-size: smaller;
+      }
+      .toolTipContainer {
+        position: absolute;
+        left: 50px;
+        z-index: 2;
+        animation: tooltip;
+        animation-duration: 1.5s;
+        display: flex;
+        align-items: center;
+      }
+      .arrow {
+        width: 0;
+        height: 0;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+
+        border-right: 10px solid var(--card-background-color);
+      }
+      @keyframes tooltip {
+        0%,
+        80% {
+          opacity: 0%;
+        }
+        100% {
+          opacity: 100%;
+        }
+      }
+
+      #offline {
+        height: 100dvh;
+        display: none;
+      }
+      #offline svg {
+        height: 80dvh;
+        width: 80dvh;
+        animation: blink;
+        animation-duration: 2s;
+        animation-iteration-count: infinite;
+        stroke: red;
+        display: block;
+        margin: auto;
+      }
+      @keyframes blink {
+        from {
+          opacity: 100%;
+        }
+        to {
+          opacity: 0%;
+        }
+      }
+      .marquee {
+        overflow: hidden;
+        white-space: nowrap;
+        background: repeating-linear-gradient(
+          -55deg,
+          yellow,
+          yellow 10px,
+          black 10px,
+          black 20px
+        );
+        max-height: 10dvh;
+        width: 100vw;
+      }
+      .marquee span {
+        display: inline-block;
+        font-size: 5dvh;
+        color: white;
+        text-shadow: 2px 2px 4px #000000;
+        font-weight: bold;
+        position: relative;
+        left: 100%;
+        animation: marquee 8s linear infinite;
+      }
+      @keyframes marquee {
+        0% {
+          left: 100%;
+        }
+        100% {
+          left: -100%;
+        }
+      }
+    </style>
+  </head>
+  <body onload="blank()" id="body">
+    <div id="online">
+      <div class="notificationContainer">
+        <div id="notification">
+          <p id="notificationText">see</p>
+        </div>
+      </div>
+
+      <dialog id="switch-printings-model">
+        <article>
+          <header>
+            <a
+              href="#close"
+              aria-label="Close"
+              class="close"
+              data-target="switch-printings-model"
+              onClick="toggleModal(event)"
+            ></a>
+            Select your print:
+          </header>
+
+          <div id="allPrints"></div>
+        </article>
+      </dialog>
+
+      <dialog id="search-model">
+        <article>
+          <header>
+            <a
+              href="#close"
+              aria-label="Close"
+              class="close"
+              data-target="search-model"
+              onClick="toggleModal(event)"
+            ></a>
+            Search for a card:
+          </header>
+
+          <input id="cardSearch" type="text" onkeyup="searchInput(this)" />
+          <div id="cardSearchAutoComplete"></div>
+        </article>
+      </dialog>
+
+      <div class="container">
+        <p>
+          Enter collector number, than set, than an optional <code>f</code> for
+          foils: <code>123 ktk f</code>. Type the first character for basic
+          lands (<code>f</code> -> <code>forest</code>).
+        </p>
+        <input type="text" id="input" />
+        <p id="error">&nbsp;</p>
+        <div class="main">
+          <div class="card">
+            <img id="img" />
+            <svg
+              id="svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="4" cy="12" r="3">
+                <animate
+                  id="spinner_qFRN"
+                  begin="0;spinner_OcgL.end+0.25s"
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.6s"
+                  values="12;6;12"
+                  keySplines=".33,.66,.66,1;.33,0,.66,.33"
+                />
+              </circle>
+              <circle cx="12" cy="12" r="3">
+                <animate
+                  begin="spinner_qFRN.begin+0.1s"
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.6s"
+                  values="12;6;12"
+                  keySplines=".33,.66,.66,1;.33,0,.66,.33"
+                />
+              </circle>
+              <circle cx="20" cy="12" r="3">
+                <animate
+                  id="spinner_OcgL"
+                  begin="spinner_qFRN.begin+0.2s"
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.6s"
+                  values="12;6;12"
+                  keySplines=".33,.66,.66,1;.33,0,.66,.33"
+                />
+              </circle>
+            </svg>
+          </div>
+          <div class="menu">
+            <button id="foil" onclick="foilCard()">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-sparkle"
+              >
+                <path
+                  d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z"
+                />
+              </svg>
+            </button>
+            <button id="remove" onclick="removeCard()">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-x"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+            <button
+              id="printings"
+              data-target="switch-printings-model"
+              onClick="toggleModal(event);switchPrintings()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-arrow-left-right"
+              >
+                <path d="M8 3 4 7l4 4" />
+                <path d="M4 7h16" />
+                <path d="m16 21 4-4-4-4" />
+                <path d="M20 17H4" />
+              </svg>
+            </button>
+            <button
+              id="search"
+              data-target="search-model"
+              onClick="toggleModal(event);openSearchModel()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-search"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+            </button>
+            <button id="copy" onclick="copyClipboard()">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-clipboard-copy"
+              >
+                <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                <path
+                  d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"
+                />
+                <path d="M16 4h2a2 2 0 0 1 2 2v4" />
+                <path d="M21 14H11" />
+                <path d="m15 10-4 4 4 4" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      let allNames = false;
+      let clipboard = [];
+      let switchURL;
+      let lands = {
+        p: {
+          name: "plains",
+          url: "https://cards.scryfall.io/large/front/7/a/7a2c8b8e-2e28-4f10-b04f-9b313c60c0bb.jpg?1665800252",
+        },
+        i: {
+          name: "island",
+          url: "https://cards.scryfall.io/large/front/1/0/105b2118-b22c-4ef5-bac7-836db4b8b9ee.jpg?1665800224",
+        },
+        s: {
+          name: "swamp",
+          url: "https://cards.scryfall.io/normal/front/f/1/f108b0fb-420a-422d-ae85-9a99c0f73169.jpg?1665800239",
+        },
+        m: {
+          name: "mountain",
+          url: "https://cards.scryfall.io/large/front/4/4/44c1a862-00fc-4e79-a83a-289fef81503a.jpg?1665800243",
+        },
+        f: {
+          name: "forest",
+          url: "https://cards.scryfall.io/large/front/f/8/f8772631-d4a1-440d-ac89-ac6659bdc073.jpg?1665800214",
+        },
+        w: {
+          name: "wastes",
+          url: "https://cards.scryfall.io/large/front/6/9/69b215fe-0d97-4ca1-9490-174220fd454b.jpg?1562916234",
+        },
+      };
+      const toolTips = {
+        copy: "Copy",
+        foil: "Foil",
+        remove: "Remove",
+        printings: "Switch card printing",
+        search: "Search by card name",
+      };
+      Object.keys(toolTips).forEach((id) => {
+        const el = document.getElementById(id);
+        el.addEventListener("mouseenter", () => {
+          createToolTip(el, toolTips[id]);
+        });
+        el.addEventListener("mouseleave", () => {
+          removeToolTip(el);
+        });
+      });
+
+      document
+      .getElementById("input").addEventListener("keyup", function (event) {
+          event.preventDefault();
+          if (event.keyCode === 13) {
+            uploadCard(document.getElementById("input"));
+          }
+        });
+
+      async function uploadCard(input) {
+        let value = input.value.trim();
+        let url;
+        let foil;
+        if (lands[value]) {
+          url = lands[value].url;
+          clipboard.push(lands[value].name);
+          switchURL = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
+            "!" + lands[value].name
+          )}&unique=prints`;
+        } else if (value.match(/^[a-zA-z0-9]+\s+[a-zA-z0-9]+(\s+f)?$/)) {
+          const split = value.split(/\s+/);
+          const cn = split[0];
+          const set = split[1];
+          foil = split.length > 2;
+          const card = await getJSON(
+            `https://api.scryfall.com/cards/${encodeURIComponent(
+              set
+            )}/${encodeURIComponent(cn)}`
+          );
+          if (!card) {
+            document.getElementById("error").innerHTML = "Card not found.";
+            return;
+          }
+          url = card.card_faces
+            ? card.card_faces[0].image_uris.large
+            : card.image_uris.large;
+          const finishes = card.finishes;
+          if (!finishes.includes("foil") || !finishes.includes("nonfoil")) {
+            document.getElementById("foil").disabled = true;
+            foil = finishes.includes("foil");
+          } else {
+            document.getElementById("foil").disabled = false;
+          }
+          clipboard.push(`1 ${card.name} (${set}) ${cn} ${foil ? "*F*" : ""}`);
+          switchURL = card.prints_search_uri;
+        } else {
+          document.getElementById("error").innerHTML = "Invalid input";
+          return;
+        }
+        appear(url);
+        if (foil) {
+          document.getElementById("img").classList.add("foil");
+          document.getElementById("foil").classList.add("foil");
+        } else {
+          document.getElementById("img").classList.remove("foil");
+          document.getElementById("foil").classList.remove("foil");
+        }
+      }
+
+      async function getJSON(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+          return false;
+        }
+        const data = await response.json();
+        return data;
+      }
+
+      function blank() {
+        document.getElementById("img").src = "";
+        document.getElementById("svg").display = "block";
+
+        document.getElementById("remove").disabled = true;
+        document.getElementById("foil").disabled = true;
+        document.getElementById("foil").classList.remove("foil");
+        document.getElementById("printings").disabled = true;
+      }
+
+      function appear(url) {
+        document.getElementById("svg").display = "none";
+        document.getElementById("img").src = url;
+
+        document.getElementById("remove").disabled = false;
+        document.getElementById("printings").disabled = false;
+
+        input.value = "";
+        input.focus();
+        document.getElementById("error").innerHTML = "&nbsp;";
+      }
+
+      function foilCard() {
+        let lastCard = clipboard.pop();
+        if (lastCard.endsWith("*F*")) {
+          clipboard.push(lastCard.replace(/ \*F\*$/, ""));
+          document.getElementById("img").classList.remove("foil");
+          document.getElementById("foil").classList.remove("foil");
+        } else {
+          clipboard.push(lastCard + " *F*");
+          document.getElementById("img").classList.add("foil");
+          document.getElementById("foil").classList.add("foil");
+        }
+        document.getElementById("input").focus();
+      }
+
+      function removeCard() {
+        clipboard.pop();
+        blank();
+        document.getElementById("input").focus();
+      }
+
+      function copyClipboard() {
+        navigator.clipboard.writeText(clipboard.join("\n")).then(
+          function () {
+            notification("Successfully copied deck");
+          },
+          function (err) {
+            notification("Could not copy deck");
+          }
+        );
+      }
+
+      function notification(text) {
+        document.getElementById("notificationText").innerHTML = text;
+        document
+          .getElementById("notification")
+          .classList.add("notificationAnimation");
+        document.getElementById("copy").disabled = true;
+        setTimeout(function () {
+          document
+            .getElementById("notification")
+            .classList.remove("notificationAnimation");
+          document.getElementById("copy").disabled = false;
+        }, 2100);
+      }
+
+      async function switchPrintings() {
+        let prints = await getJSON(switchURL);
+        let innerHTML = "";
+        function addCardsFromPage() {
+          for (var card of prints.data) {
+            let url = card.card_faces
+              ? card.card_faces[0].image_uris.large
+              : card.image_uris.large;
+            let finishes = false;
+            if (!card.finishes.includes("foil")) {
+              finishes = "nonfoil";
+            }
+            if (!card.finishes.includes("nonfoil")) {
+              finishes = "foil";
+            }
+            innerHTML += `<img src="${url}" data-target="switch-printings-model" onClick="toggleModal(event);changePrintTo('${card.set}','${card.collector_number}','${url}','${card.name}','${finishes}')">`;
+          }
+        }
+        addCardsFromPage();
+        while (prints.has_more) {
+          prints = await getJSON(prints.next_page);
+          addCardsFromPage();
+        }
+        document.getElementById("allPrints").innerHTML = innerHTML;
+      }
+
+      function changePrintTo(set, cn, url, name, finish) {
+        let isFoil;
+        if (finish == "nonfoil") {
+          clipboard.pop();
+          clipboard.push(`1 ${name} (${set}) ${cn}`);
+          isFoil = false;
+          document.getElementById("foil").disabled = true;
+        } else if (finish == "foil") {
+          clipboard.pop();
+          clipboard.push(`1 ${name} (${set}) ${cn} *F*`);
+          isFoil = true;
+          document.getElementById("foil").disabled = true;
+        } else {
+          document.getElementById("foil").disabled = false;
+          isFoil = clipboard.pop().endsWith("*F*");
+          clipboard.push(`1 ${name} (${set}) ${cn} ${isFoil ? "*F*" : ""}`);
+        }
+        if (isFoil) {
+          document.getElementById("foil").classList.add("foil");
+          document.getElementById("img").classList.add("foil");
+        } else {
+          document.getElementById("foil").classList.remove("foil");
+          document.getElementById("img").classList.remove("foil");
+        }
+        document.getElementById("img").src = url;
+      }
+
+      async function searchInput(el) {
+        let input = el.value.toLowerCase().split(/\s+/);
+        const filtered = allNames.filter(function (name) {
+          for (var keyword of input) {
+            if (!name.toLowerCase().includes(keyword)) {
+              return false;
+            }
+          }
+          return true;
+        });
+        let max = filtered.length < 10 ? filtered.length : 10;
+        let autoFeild = "";
+        for (var i = 0; i < max; i++) {
+          autoFeild += `
+                  <div onclick="addCardFromSearch(this.innerText);toggleModal(event)" data-target="search-model">${filtered[i]}</div>
+                  `;
+        }
+        document.getElementById("cardSearchAutoComplete").innerHTML = autoFeild;
+      }
+
+      async function openSearchModel() {
+        document.getElementById("cardSearch").value = "";
+        document.getElementById("cardSearchAutoComplete").innerHTML = "";
+        if (!allNames) {
+          allNames = await getJSON(
+            "https://api.scryfall.com/catalog/card-names"
+          );
+          allNames = allNames.data;
+        }
+        document.getElementById("cardSearch").focus();
+      }
+
+      async function addCardFromSearch(name) {
+        const card = await getJSON(
+          `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(
+            name
+          )}`
+        );
+        let foil = false;
+        const set = card.set;
+        const cn = card.collector_number;
+        url = card.card_faces
+          ? card.card_faces[0].image_uris.large
+          : card.image_uris.large;
+        switchURL = card.prints_search_uri;
+        const finishes = card.finishes;
+        if (!finishes.includes("foil") || !finishes.includes("nonfoil")) {
+          document.getElementById("foil").disabled = true;
+          foil = finishes.includes("foil");
+        } else {
+          document.getElementById("foil").disabled = false;
+        }
+        if (foil) {
+          document.getElementById("img").classList.add("foil");
+          document.getElementById("foil").classList.add("foil");
+        } else {
+          document.getElementById("img").classList.remove("foil");
+          document.getElementById("foil").classList.remove("foil");
+        }
+
+        appear(url);
+        clipboard.push(`1 ${name} (${set}) ${cn} ${foil ? "*F*" : ""}`);
+      }
+
+      function createToolTip(el, text) {
+        let toolTip = document.createElement("div");
+        toolTip.classList.add("toolTipContainer");
+        let content = document.createElement("div");
+        content.classList.add("toolTip");
+        content.appendChild(document.createTextNode(text));
+        let arrow = document.createElement("div");
+        arrow.classList.add("arrow");
+        toolTip.appendChild(arrow);
+        toolTip.appendChild(content);
+        el.appendChild(toolTip);
+      }
+
+      function removeToolTip(el) {
+        el.getElementsByTagName("div")[0].remove();
+      }
+
+      window.addEventListener("online", onlineOffline);
+      window.addEventListener("offline", onlineOffline);
+      setInterval(onlineOffline, 10);
+
+      function onlineOffline() {
+        if (navigator.onLine) {
+          document.getElementById("online").style.display = "block";
+          document.getElementById("offline").style.display = "none";
+          return true;
+        } else {
+          document.getElementById("online").style.display = "none";
+          document.getElementById("offline").style.display = "block";
+          return false;
+        }
+      }
+    </script>
+    <div id="offline">
+      <p class="marquee">
+        <span>NO INTERNET CONNECTION</span>
+      </p>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="lucide lucide-alert-octagon"
+      >
+        <polygon
+          points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"
+        />
+        <line x1="12" x2="12" y1="8" y2="12" />
+        <line x1="12" x2="12.01" y1="16" y2="16" />
+      </svg>
+    </div>
+  </body>
+</html>
