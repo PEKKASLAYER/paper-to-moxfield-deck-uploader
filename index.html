@@ -1,5 +1,5 @@
 <!-- 
-    - Lack of internet
+    - loading cards when switch etc... doing the ... loader
 -->
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -7,251 +7,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Paper to Moxfield Deck Uploader</title>
-    <link rel="icon" type="image/x-icon" href="https://images.ctfassets.net/s5n2t79q9icq/3egwuCGbsz0dAQjFiwyfta/fc388da733a1daa7545c68fc092ae2f8/card-comparison.svg?fm=webp">
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://images.ctfassets.net/s5n2t79q9icq/3egwuCGbsz0dAQjFiwyfta/fc388da733a1daa7545c68fc092ae2f8/card-comparison.svg?fm=webp"
+    />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
     />
     <script src="model.js"></script>
-    <style>
-      .container {
-        width: 80%;
-        min-height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-      }
-      p {
-        margin-bottom: 5px;
-      }
-      .card {
-        background-color: #19222c;
-        border-radius: 12.5px;
-        height: 350px;
-        width: 250px;
-        justify-content: center;
-        align-items: center;
-        display: flex;
-      }
-      .card.svg {
-        position: relative;
-        z-index: 0;
-      }
-      img {
-        z-index: 1;
-        border-radius: 12.5px;
-      }
-      img.foil {
-        mask: linear-gradient(135deg, #000c 40%, #000, #000c 60%) 100% 100%/ /* initial position, bottom-right */
-          240% 240%; /* width and height */
-        animation: shine 4s;
-        animation-iteration-count: infinite;
-        animation-direction: alternate;
-      }
-      @keyframes shine {
-        50% {
-          mask-position: 0 0;
-        }
-      }
-
-      #error {
-        color: rgb(223, 27, 27);
-        font-size: smaller;
-      }
-      .main {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-      }
-      .menu {
-        display: flex;
-        justify-content: space-between;
-        flex-direction: column;
-        height: 320px;
-        margin-left: 20px;
-      }
-      .menu button {
-        display: flex;
-        position: relative; /* for tooltips */
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        border-radius: 5px;
-        background-color: var(--primary);
-      }
-      button.foil {
-        background-color: var(--secondary);
-      }
-
-      #notification {
-        opacity: 0%;
-        z-index: 5;
-        position: absolute;
-        display: flex;
-        justify-content: center;
-        top: 0px;
-        width: 100%;
-      }
-      #notificationText {
-        margin: auto;
-        background-color: var(--card-sectionning-background-color);
-        padding: 20px;
-        display: inline;
-        border-radius: 10px;
-        text-align: center;
-      }
-      .notificationContainer {
-        width: 100%;
-      }
-      .notificationAnimation {
-        animation: reveal 2s;
-      }
-      @keyframes reveal {
-        0% {
-          top: 0px;
-          opacity: 0%;
-        }
-        10%,
-        90% {
-          top: 30px;
-          opacity: 100%;
-        }
-        100% {
-          top: 0px;
-          opacity: 0%;
-        }
-      }
-
-      dialog article {
-        width: 100%;
-      }
-      #allPrints {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-        flex-wrap: wrap;
-      }
-      #allPrints img {
-        width: 200px;
-        margin: 5px;
-      }
-      #allPrints img:hover {
-        outline: 1px solid var(--primary);
-      }
-
-      #cardSearch,
-      #cardSearchAutoComplete {
-        width: 80%;
-        display: block;
-        margin: 0px auto;
-      }
-      #cardSearchAutoComplete {
-        overflow-y: auto;
-        height: 300px;
-        display: flex;
-        flex-direction: column;
-      }
-      #cardSearchAutoComplete div {
-        background-color: var(--card-background-color);
-        padding: 10px;
-      }
-      #cardSearchAutoComplete div:hover {
-        background-color: var(--primary);
-      }
-      #search-model article {
-        height: 600px;
-      }
-
-      .toolTip {
-        padding: 8px;
-        display: inline-block;
-        width: max-content;
-        background-color: var(--card-background-color);
-        font-size: smaller;
-      }
-      .toolTipContainer {
-        position: absolute;
-        left: 50px;
-        z-index: 2;
-        animation: tooltip;
-        animation-duration: 1.5s;
-        display: flex;
-        align-items: center;
-      }
-      .arrow {
-        width: 0;
-        height: 0;
-        border-top: 10px solid transparent;
-        border-bottom: 10px solid transparent;
-
-        border-right: 10px solid var(--card-background-color);
-      }
-      @keyframes tooltip {
-        0%,
-        80% {
-          opacity: 0%;
-        }
-        100% {
-          opacity: 100%;
-        }
-      }
-
-      #offline {
-        height: 100dvh;
-        display: none;
-      }
-      #offline svg {
-        height: 80dvh;
-        width: 80dvh;
-        animation: blink;
-        animation-duration: 2s;
-        animation-iteration-count: infinite;
-        stroke: red;
-        display: block;
-        margin: auto;
-      }
-      @keyframes blink {
-        from {
-          opacity: 100%;
-        }
-        to {
-          opacity: 0%;
-        }
-      }
-      .marquee {
-        overflow: hidden;
-        white-space: nowrap;
-        background: repeating-linear-gradient(
-          -55deg,
-          yellow,
-          yellow 10px,
-          black 10px,
-          black 20px
-        );
-        max-height: 10dvh;
-        width: 100vw;
-      }
-      .marquee span {
-        display: inline-block;
-        font-size: 5dvh;
-        color: white;
-        text-shadow: 2px 2px 4px #000000;
-        font-weight: bold;
-        position: relative;
-        left: 100%;
-        animation: marquee 8s linear infinite;
-      }
-      @keyframes marquee {
-        0% {
-          left: 100%;
-        }
-        100% {
-          left: -100%;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body onload="blank()" id="body">
     <div id="online">
@@ -296,13 +62,90 @@
         </article>
       </dialog>
 
+      <dialog id="deck-model">
+        <article>
+          <header>
+            <a
+              href="#close"
+              aria-label="Close"
+              class="close"
+              data-target="deck-model"
+              onClick="toggleModal(event)"
+            ></a>
+            Your Deck:
+          </header>
+          <div id="fullDeck"></div>
+          <button
+            id="delete-deck-button"
+            data-target="delete-deck-model"
+            onClick="toggleModal(event);"
+          >
+            Delete Deck
+          </button>
+        </article>
+      </dialog>
+
+      <dialog id="delete-card-model">
+        <article>
+          <h3>
+            Are you sure you want to delete <span id="delete-card-name"></span>?
+          </h3>
+          <img id="delete-card-img" />
+          <footer>
+            <button
+              class="secondary"
+              data-target="delete-card-model"
+              onClick="toggleModal(event)"
+            >
+              Cancel
+            </button>
+            <button
+              data-target="delete-card-model"
+              onClick="deleteCard();toggleModal(event)"
+              class="red"
+            >
+              Delete
+            </button>
+          </footer>
+        </article>
+      </dialog>
+
+      <dialog id="delete-deck-model">
+        <article>
+          <h3>Are you sure you want to delete your deck?</h3>
+          <p>This action is not reversible.</p>
+          <footer>
+            <button
+              class="secondary"
+              data-target="delete-deck-model"
+              onClick="toggleModal(event)"
+            >
+              Cancel
+            </button>
+            <button
+              data-target="delete-deck-model"
+              onClick="deleteClipboard();toggleModal(event)"
+              class="red"
+            >
+              Delete
+            </button>
+          </footer>
+        </article>
+      </dialog>
+
       <div class="container">
         <p>
           Enter collector number, than set, than an optional <code>f</code> for
-          foils: <code>123 ktk f</code>. Type the first character for basic
-          lands (<code>f</code> -> <code>forest</code>).
+          foils: <code>123 ktk f</code>.
         </p>
-        <input type="text" id="input" />
+        <div class="inputContainer">
+          <input type="text" id="input" /><button
+            data-target="deck-model"
+            onClick="toggleModal(event);fillDeck()"
+          >
+            View Deck
+          </button>
+        </div>
         <p id="error">&nbsp;</p>
         <div class="main">
           <div class="card">
@@ -455,35 +298,9 @@
       </div>
     </div>
     <script>
+      let toDeleteIndex;
       let allNames = false;
       let clipboard = [];
-      let switchURL;
-      let lands = {
-        p: {
-          name: "plains",
-          url: "https://cards.scryfall.io/large/front/7/a/7a2c8b8e-2e28-4f10-b04f-9b313c60c0bb.jpg?1665800252",
-        },
-        i: {
-          name: "island",
-          url: "https://cards.scryfall.io/large/front/1/0/105b2118-b22c-4ef5-bac7-836db4b8b9ee.jpg?1665800224",
-        },
-        s: {
-          name: "swamp",
-          url: "https://cards.scryfall.io/normal/front/f/1/f108b0fb-420a-422d-ae85-9a99c0f73169.jpg?1665800239",
-        },
-        m: {
-          name: "mountain",
-          url: "https://cards.scryfall.io/large/front/4/4/44c1a862-00fc-4e79-a83a-289fef81503a.jpg?1665800243",
-        },
-        f: {
-          name: "forest",
-          url: "https://cards.scryfall.io/large/front/f/8/f8772631-d4a1-440d-ac89-ac6659bdc073.jpg?1665800214",
-        },
-        w: {
-          name: "wastes",
-          url: "https://cards.scryfall.io/large/front/6/9/69b215fe-0d97-4ca1-9490-174220fd454b.jpg?1562916234",
-        },
-      };
       const toolTips = {
         copy: "Copy",
         foil: "Foil",
@@ -502,7 +319,8 @@
       });
 
       document
-      .getElementById("input").addEventListener("keyup", function (event) {
+        .getElementById("input")
+        .addEventListener("keyup", function (event) {
           event.preventDefault();
           if (event.keyCode === 13) {
             uploadCard(document.getElementById("input"));
@@ -513,13 +331,7 @@
         let value = input.value.trim();
         let url;
         let foil;
-        if (lands[value]) {
-          url = lands[value].url;
-          clipboard.push(lands[value].name);
-          switchURL = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
-            "!" + lands[value].name
-          )}&unique=prints`;
-        } else if (value.match(/^[a-zA-z0-9]+\s+[a-zA-z0-9]+(\s+f)?$/)) {
+        if (value.match(/^[a-zA-z0-9]+\s+[a-zA-z0-9]+(\s+f)?$/)) {
           const split = value.split(/\s+/);
           const cn = split[0];
           const set = split[1];
@@ -533,9 +345,9 @@
             document.getElementById("error").innerHTML = "Card not found.";
             return;
           }
-          url = card.card_faces
-            ? card.card_faces[0].image_uris.large
-            : card.image_uris.large;
+          url = card.image_uris
+            ? card.image_uris.large
+            : card.card_faces[0].image_uris.large;
           const finishes = card.finishes;
           if (!finishes.includes("foil") || !finishes.includes("nonfoil")) {
             document.getElementById("foil").disabled = true;
@@ -543,8 +355,13 @@
           } else {
             document.getElementById("foil").disabled = false;
           }
-          clipboard.push(`1 ${card.name} (${set}) ${cn} ${foil ? "*F*" : ""}`);
-          switchURL = card.prints_search_uri;
+          clipboard.push({
+            name: card.name,
+            set: set,
+            cn: cn,
+            foil: foil,
+            switchURL: card.prints_search_uri,
+          });
         } else {
           document.getElementById("error").innerHTML = "Invalid input";
           return;
@@ -591,13 +408,12 @@
       }
 
       function foilCard() {
-        let lastCard = clipboard.pop();
-        if (lastCard.endsWith("*F*")) {
-          clipboard.push(lastCard.replace(/ \*F\*$/, ""));
+        if (clipboardLast().foil) {
+          foilfy(false);
           document.getElementById("img").classList.remove("foil");
           document.getElementById("foil").classList.remove("foil");
         } else {
-          clipboard.push(lastCard + " *F*");
+          foilfy(true);
           document.getElementById("img").classList.add("foil");
           document.getElementById("foil").classList.add("foil");
         }
@@ -611,14 +427,25 @@
       }
 
       function copyClipboard() {
-        navigator.clipboard.writeText(clipboard.join("\n")).then(
-          function () {
-            notification("Successfully copied deck");
-          },
-          function (err) {
-            notification("Could not copy deck");
-          }
-        );
+        navigator.clipboard
+          .writeText(
+            clipboard
+              .map(
+                (card) =>
+                  `${card.name} (${card.set}) ${card.cn} ${
+                    card.foil ? "*F*" : ""
+                  }`
+              )
+              .join("\n")
+          )
+          .then(
+            function () {
+              notification("Successfully copied deck");
+            },
+            function (err) {
+              notification("Could not copy deck");
+            }
+          );
       }
 
       function notification(text) {
@@ -636,13 +463,13 @@
       }
 
       async function switchPrintings() {
-        let prints = await getJSON(switchURL);
+        let prints = await getJSON(clipboardLast().switchURL);
         let innerHTML = "";
         function addCardsFromPage() {
           for (var card of prints.data) {
-            let url = card.card_faces
-              ? card.card_faces[0].image_uris.large
-              : card.image_uris.large;
+            let url = card.image_uris
+              ? card.image_uris.large
+              : card.card_faces[0].image_uris.large;
             let finishes = false;
             if (!card.finishes.includes("foil")) {
               finishes = "nonfoil";
@@ -650,7 +477,54 @@
             if (!card.finishes.includes("nonfoil")) {
               finishes = "foil";
             }
-            innerHTML += `<img src="${url}" data-target="switch-printings-model" onClick="toggleModal(event);changePrintTo('${card.set}','${card.collector_number}','${url}','${card.name}','${finishes}')">`;
+            innerHTML += `
+            <div class="loadingBG">
+              <svg
+              id="svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="4" cy="12" r="3">
+                <animate
+                  id="spinner_qFRN"
+                  begin="0;spinner_OcgL.end+0.25s"
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.6s"
+                  values="12;6;12"
+                  keySplines=".33,.66,.66,1;.33,0,.66,.33"
+                />
+              </circle>
+              <circle cx="12" cy="12" r="3">
+                <animate
+                  begin="spinner_qFRN.begin+0.1s"
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.6s"
+                  values="12;6;12"
+                  keySplines=".33,.66,.66,1;.33,0,.66,.33"
+                />
+              </circle>
+              <circle cx="20" cy="12" r="3">
+                <animate
+                  id="spinner_OcgL"
+                  begin="spinner_qFRN.begin+0.2s"
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.6s"
+                  values="12;6;12"
+                  keySplines=".33,.66,.66,1;.33,0,.66,.33"
+                />
+              </circle>
+            </svg>
+              <img class="loadingImg" 
+                   onload="this.parentNode.getElementsByTagName('svg')[0].style.display='none';this.style.display = 'inline-block'"
+                   src="${url}" 
+                   data-target="switch-printings-model" 
+                   onClick="toggleModal(event);changePrintTo('${card.set}','${card.collector_number}','${url}','${card.name}','${finishes}')">
+            </div>`;
           }
         }
         addCardsFromPage();
@@ -664,19 +538,16 @@
       function changePrintTo(set, cn, url, name, finish) {
         let isFoil;
         if (finish == "nonfoil") {
-          clipboard.pop();
-          clipboard.push(`1 ${name} (${set}) ${cn}`);
+          foilfy(false);
           isFoil = false;
           document.getElementById("foil").disabled = true;
         } else if (finish == "foil") {
-          clipboard.pop();
-          clipboard.push(`1 ${name} (${set}) ${cn} *F*`);
+          foilfy(true);
           isFoil = true;
           document.getElementById("foil").disabled = true;
         } else {
           document.getElementById("foil").disabled = false;
-          isFoil = clipboard.pop().endsWith("*F*");
-          clipboard.push(`1 ${name} (${set}) ${cn} ${isFoil ? "*F*" : ""}`);
+          isFoil = clipboard[clipboard.length - 1].foil;
         }
         if (isFoil) {
           document.getElementById("foil").classList.add("foil");
@@ -702,8 +573,8 @@
         let autoFeild = "";
         for (var i = 0; i < max; i++) {
           autoFeild += `
-                  <div onclick="addCardFromSearch(this.innerText);toggleModal(event)" data-target="search-model">${filtered[i]}</div>
-                  `;
+                        <div onclick="addCardFromSearch(this.innerText);toggleModal(event)" data-target="search-model">${filtered[i]}</div>
+                        `;
         }
         document.getElementById("cardSearchAutoComplete").innerHTML = autoFeild;
       }
@@ -729,10 +600,10 @@
         let foil = false;
         const set = card.set;
         const cn = card.collector_number;
-        url = card.card_faces
-          ? card.card_faces[0].image_uris.large
-          : card.image_uris.large;
-        switchURL = card.prints_search_uri;
+        console.log(card);
+        let url = card.image_uris
+          ? card.image_uris.large
+          : card.card_faces[0].image_uris.large;
         const finishes = card.finishes;
         if (!finishes.includes("foil") || !finishes.includes("nonfoil")) {
           document.getElementById("foil").disabled = true;
@@ -749,7 +620,13 @@
         }
 
         appear(url);
-        clipboard.push(`1 ${name} (${set}) ${cn} ${foil ? "*F*" : ""}`);
+        clipboard.push({
+          name: name,
+          set: set,
+          cn: cn,
+          foil: foil,
+          switchURL: card.prints_search_uri,
+        });
       }
 
       function createToolTip(el, text) {
@@ -783,6 +660,141 @@
           document.getElementById("offline").style.display = "block";
           return false;
         }
+      }
+
+      async function fillDeck() {
+        if (clipboard.length == 0) {
+          document.getElementById("fullDeck").innerHTML =
+            "<p>Wow... It's empty in here.</p>";
+          document.getElementById("delete-deck-button").disabled = true;
+          return;
+        }
+        document.getElementById("delete-deck-button").disabled = false;
+        let searches = [[]];
+        for (var card of clipboard) {
+          let searchList = searches[searches.length - 1];
+          if (Object.keys(searchList).length == 75) {
+            searches.push([]);
+            searchList = searches[searches.length - 1];
+          }
+          searchList.push({
+            set: card.set,
+            collector_number: card.cn,
+          });
+        }
+        let i = 0;
+        for (var search of searches) {
+          let result = await fetch(
+            "https://api.scryfall.com/cards/collection",
+            {
+              method: "post",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ identifiers: search }),
+            }
+          );
+          const data = await result.json();
+          let newHTML = "";
+          const clipWithFoils = [...clipboard];
+          for (var card of data.data) {
+            const url = card.image_uris
+              ? card.image_uris.large
+              : card.card_faces[0].image_uris.large;
+            const foil = clipWithFoils.filter(
+              (clipCard) => clipCard.name == card.name
+            )[0].foil;
+            newHTML += `<div class="loadingBG">
+              <svg
+              id="svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="4" cy="12" r="3">
+                <animate
+                  id="spinner_qFRN"
+                  begin="0;spinner_OcgL.end+0.25s"
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.6s"
+                  values="12;6;12"
+                  keySplines=".33,.66,.66,1;.33,0,.66,.33"
+                />
+              </circle>
+              <circle cx="12" cy="12" r="3">
+                <animate
+                  begin="spinner_qFRN.begin+0.1s"
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.6s"
+                  values="12;6;12"
+                  keySplines=".33,.66,.66,1;.33,0,.66,.33"
+                />
+              </circle>
+              <circle cx="20" cy="12" r="3">
+                <animate
+                  id="spinner_OcgL"
+                  begin="spinner_qFRN.begin+0.2s"
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.6s"
+                  values="12;6;12"
+                  keySplines=".33,.66,.66,1;.33,0,.66,.33"
+                />
+              </circle>
+            </svg><img 
+            class="loadingImg ${foil ? "foil" : ""}"
+            onload="this.parentNode.getElementsByTagName('svg')[0].style.display='none';this.style.display = 'inline-block'"
+            src="${url}" 
+            onclick="toggleModal(event);
+                     toDeleteIndex=Array.prototype.indexOf.call(this.parentElement.parentElement.children, this.parentElement);
+                     document.getElementById('delete-card-name').innerText = clipboard[toDeleteIndex].name;
+                     document.getElementById('delete-card-img').src = this.src;
+                     ${foil ? "document.getElementById('delete-card-img').classList.add('foil')" :  "document.getElementById('delete-card-img').classList.remove('foil')"}"
+            data-target="delete-card-model">
+            </div>`;
+            let idx = clipWithFoils.findIndex(
+              (p) => p.foil == foil && p.name == card.name
+            );
+            clipWithFoils.splice(idx, 1);
+          }
+          document.getElementById("fullDeck").innerHTML = newHTML;
+        }
+      }
+
+      function foilfy(to) {
+        clipboardLast().foil = to;
+      }
+      function clipboardLast() {
+        return clipboard[clipboard.length - 1];
+      }
+
+      function deleteClipboard() {
+        clipboard = [];
+        blank();
+        closeModal(document.getElementById("deck-model"));
+      }
+      function deleteCard() {
+        if (toDeleteIndex + 1 == clipboard.length) {
+          blank();
+        }
+        clipboard.splice(toDeleteIndex, 1);
+        document
+          .getElementById("fullDeck")
+          .removeChild(
+            document.getElementById("fullDeck").childNodes[toDeleteIndex]
+          );
+
+        if (clipboard.length == 0) {
+          document.getElementById("fullDeck").innerHTML =
+            "<p>Wow... It's empty in here.</p>";
+          document.getElementById("delete-deck-button").disabled = true;
+          return;
+        }
+        document.getElementById("delete-deck-button").disabled = false;
       }
     </script>
     <div id="offline">

@@ -1,0 +1,295 @@
+.inputContainer {
+    display: flex;
+    width: 100%;
+  }
+  .inputContainer button {
+    height: max-content;
+    width: fit-content;
+    margin: 0px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    white-space: nowrap;
+  }
+  .inputContainer input {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+  }
+  .container {
+    width: 80%;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  p {
+    margin-bottom: 5px;
+  }
+  .card {
+    background-color: #19222c;
+    border-radius: 12.5px;
+    height: 350px;
+    width: 250px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+  }
+  .card.svg {
+    position: relative;
+    z-index: 0;
+  }
+  img {
+    z-index: 1;
+    border-radius: 12.5px;
+  }
+  img.foil {
+    mask: linear-gradient(135deg, #000c 40%, #000, #000c 60%) 100% 100%/ /* initial position, bottom-right */
+      240% 240%; /* width and height */
+    animation: shine 4s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
+  @keyframes shine {
+    50% {
+      mask-position: 0 0;
+    }
+  }
+
+  #error {
+    color: rgb(223, 27, 27);
+    font-size: smaller;
+  }
+  .main {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+  .menu {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    height: 320px;
+    margin-left: 20px;
+  }
+  .menu button {
+    display: flex;
+    position: relative; /* for tooltips */
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: var(--primary);
+  }
+  button.foil {
+    background-color: var(--secondary);
+  }
+
+  #notification {
+    opacity: 0%;
+    z-index: 5;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    top: 0px;
+    width: 100%;
+  }
+  #notificationText {
+    margin: auto;
+    background-color: var(--card-sectionning-background-color);
+    padding: 20px;
+    display: inline;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .notificationContainer {
+    width: 100%;
+  }
+  .notificationAnimation {
+    animation: reveal 2s;
+  }
+  @keyframes reveal {
+    0% {
+      top: 0px;
+      opacity: 0%;
+    }
+    10%,
+    90% {
+      top: 30px;
+      opacity: 100%;
+    }
+    100% {
+      top: 0px;
+      opacity: 0%;
+    }
+  }
+
+  dialog article {
+    width: 100%;
+  }
+  #allPrints,
+  #fullDeck {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    flex-wrap: wrap;
+  }
+  #allPrints img:hover {
+    outline: 1px solid var(--primary);
+  }
+  #fullDeck img:hover {
+    outline: 1px solid #e53935;
+  }
+
+  #cardSearch,
+  #cardSearchAutoComplete {
+    width: 80%;
+    display: block;
+    margin: 0px auto;
+  }
+  #cardSearchAutoComplete {
+    overflow-y: auto;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+  }
+  #cardSearchAutoComplete div {
+    background-color: var(--card-background-color);
+    padding: 10px;
+  }
+  #cardSearchAutoComplete div:hover {
+    background-color: var(--primary);
+  }
+  #search-model article {
+    height: 600px;
+  }
+
+  .toolTip {
+    padding: 8px;
+    display: inline-block;
+    width: max-content;
+    background-color: var(--card-background-color);
+    font-size: smaller;
+  }
+  .toolTipContainer {
+    position: absolute;
+    left: 50px;
+    z-index: 2;
+    animation: tooltip;
+    animation-duration: 1.5s;
+    display: flex;
+    align-items: center;
+  }
+  .arrow {
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+
+    border-right: 10px solid var(--card-background-color);
+  }
+  @keyframes tooltip {
+    0%,
+    80% {
+      opacity: 0%;
+    }
+    100% {
+      opacity: 100%;
+    }
+  }
+
+  #offline {
+    height: 100dvh;
+    display: none;
+  }
+  #offline svg {
+    height: 80dvh;
+    width: 80dvh;
+    animation: blink;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    stroke: red;
+    display: block;
+    margin: auto;
+  }
+  @keyframes blink {
+    from {
+      opacity: 100%;
+    }
+    to {
+      opacity: 0%;
+    }
+  }
+  .marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    background: repeating-linear-gradient(
+      -55deg,
+      yellow,
+      yellow 10px,
+      black 10px,
+      black 20px
+    );
+    max-height: 10dvh;
+    width: 100vw;
+  }
+  .marquee span {
+    display: inline-block;
+    font-size: 5dvh;
+    color: white;
+    text-shadow: 2px 2px 4px #000000;
+    font-weight: bold;
+    position: relative;
+    left: 100%;
+    animation: marquee 8s linear infinite;
+  }
+  @keyframes marquee {
+    0% {
+      left: 100%;
+    }
+    100% {
+      left: -100%;
+    }
+  }
+
+  #delete-deck-model footer button, #delete-card-model footer button{
+    width: min-content;
+    margin:5px;
+  }
+  .red {
+    background-color: #e53935;
+    border:none;
+  }
+  #delete-deck-model footer, #delete-card-model footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+  #deck-model button {
+    width: 80%;
+    margin:20px auto 0px auto;
+    display:block;
+    background-color: #e53935;
+    border:none;
+  }
+
+  .loadingBG {
+    background-color: #19222c;
+    border-radius: 10px;
+    height: 280px;
+    width: 200px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    margin: 5px;
+  }
+  .loadingImg {
+    display:none;
+    width: 200px;
+    margin: 5px;
+  }
+  #delete-card-img {
+    width: 200px;
+    margin: 5px;
+    display:block;
+    margin:auto;
+  }
