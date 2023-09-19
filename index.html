@@ -523,7 +523,7 @@
                    onload="this.parentNode.getElementsByTagName('svg')[0].style.display='none';this.style.display = 'inline-block'"
                    src="${url}" 
                    data-target="switch-printings-model" 
-                   onClick="toggleModal(event);changePrintTo('${card.set}','${card.collector_number}','${url}','${card.name}','${finishes}')">
+                   onClick="toggleModal(event);changePrintTo('${card.set}','${card.collector_number}','${url}','${finishes}')">
             </div>`;
           }
         }
@@ -535,7 +535,7 @@
         document.getElementById("allPrints").innerHTML = innerHTML;
       }
 
-      function changePrintTo(set, cn, url, name, finish) {
+      function changePrintTo(set, cn, url, finish) {
         let isFoil;
         if (finish == "nonfoil") {
           foilfy(false);
@@ -557,6 +557,9 @@
           document.getElementById("img").classList.remove("foil");
         }
         document.getElementById("img").src = url;
+        clipboardLast().cn = cn
+        clipboardLast().set = set
+        clipboardLast().foil = isFoil
       }
 
       async function searchInput(el) {
