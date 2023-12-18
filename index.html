@@ -308,6 +308,14 @@
         printings: "Switch card printing",
         search: "Search by card name",
       };
+      const lands = {
+        plains: 0,
+        island: 0,
+        swamp: 0,
+        mountain: 0,
+        forest: 0,
+        waste: 0,
+      };
       Object.keys(toolTips).forEach((id) => {
         const el = document.getElementById(id);
         el.addEventListener("mouseenter", () => {
@@ -363,7 +371,26 @@
             switchURL: card.prints_search_uri,
           });
         } else {
-          document.getElementById("error").innerHTML = "Invalid input";
+          const toLand = {
+            p: "plains",
+            i: "island",
+            s: "swamp",
+            m: "mountain",
+            f: "forest",
+            w: "waste",
+          };
+          if (
+            typeof toLand[value] != "function" &&
+            toLand[value] != undefined
+          ) {
+            lands[toLand[value]]++;
+            input.value = "";
+            input.focus();
+            document.getElementById("error").innerHTML = "&nbsp;";
+          } else {
+            document.getElementById("error").innerHTML = "Invalid input";
+          }
+          
           return;
         }
         appear(url);
@@ -427,25 +454,25 @@
       }
 
       function copyClipboard() {
-        navigator.clipboard
-          .writeText(
-            clipboard
-              .map(
-                (card) =>
-                  `${card.name} (${card.set}) ${card.cn} ${
-                    card.foil ? "*F*" : ""
-                  }`
-              )
-              .join("\n")
+        let text = clipboard
+          .map(
+            (card) =>
+              `${card.name} (${card.set}) ${card.cn} ${card.foil ? "*F*" : ""}`
           )
-          .then(
-            function () {
-              notification("Successfully copied deck");
-            },
-            function (err) {
-              notification("Could not copy deck");
+          .join("\n") + "\n";
+          for(var land of Object.keys(lands)) {
+            if(lands[land] != 0) {
+              text += "x" + lands[land] + " " + land + "\n";
             }
-          );
+          }
+        navigator.clipboard.writeText(text).then(
+          function () {
+            notification("Successfully copied deck");
+          },
+          function (err) {
+            notification("Could not copy deck");
+          }
+        );
       }
 
       function notification(text) {
@@ -557,9 +584,9 @@
           document.getElementById("img").classList.remove("foil");
         }
         document.getElementById("img").src = url;
-        clipboardLast().cn = cn
-        clipboardLast().set = set
-        clipboardLast().foil = isFoil
+        clipboardLast().cn = cn;
+        clipboardLast().set = set;
+        clipboardLast().foil = isFoil;
       }
 
       async function searchInput(el) {
@@ -576,7 +603,7 @@
         let autoFeild = "";
         for (var i = 0; i < max; i++) {
           autoFeild += `
-                        <div onclick="addCardFromSearch(this.innerText);toggleModal(event)" data-target="search-model">${filtered[i]}</div>
+                        <div onclick="addCardFromSearch(this.innerText);toggleModal(event);" data-target="search-model">${filtered[i]}</div>
                         `;
         }
         document.getElementById("cardSearchAutoComplete").innerHTML = autoFeild;
@@ -756,7 +783,11 @@
                      toDeleteIndex=Array.prototype.indexOf.call(this.parentElement.parentElement.children, this.parentElement);
                      document.getElementById('delete-card-name').innerText = clipboard[toDeleteIndex].name;
                      document.getElementById('delete-card-img').src = this.src;
-                     ${foil ? "document.getElementById('delete-card-img').classList.add('foil')" :  "document.getElementById('delete-card-img').classList.remove('foil')"}"
+                     ${
+                       foil
+                         ? "document.getElementById('delete-card-img').classList.add('foil')"
+                         : "document.getElementById('delete-card-img').classList.remove('foil')"
+                     }"
             data-target="delete-card-model">
             </div>`;
             let idx = clipWithFoils.findIndex(
@@ -778,7 +809,11 @@
       function deleteClipboard() {
         clipboard = [];
         blank();
+        for(var land of Object.keys(lands)) {
+          lands[land] = 0;
+        }
         closeModal(document.getElementById("deck-model"));
+
       }
       function deleteCard() {
         if (toDeleteIndex + 1 == clipboard.length) {
