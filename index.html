@@ -44,24 +44,6 @@
         </article>
       </dialog>
 
-      <dialog id="search-model">
-        <article>
-          <header>
-            <a
-              href="#close"
-              aria-label="Close"
-              class="close"
-              data-target="search-model"
-              onClick="toggleModal(event)"
-            ></a>
-            Search for a card:
-          </header>
-
-          <input id="cardSearch" type="text" onkeyup="searchInput(this)" />
-          <div id="cardSearchAutoComplete"></div>
-        </article>
-      </dialog>
-
       <dialog id="deck-model">
         <article>
           <header>
@@ -139,13 +121,32 @@
           foils: <code>123 ktk f</code>.
         </p>
         <div class="inputContainer">
-          <input type="text" id="input" /><button
-            data-target="deck-model"
-            onClick="toggleModal(event);fillDeck()"
-          >
-            View Deck
-          </button>
+  
+          <input type="text" id="input" onkeyup="searchInput(this)"/>
+          <button
+              onClick="searchToggle()"
+              id="searchButton"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-search"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+            </button>
+            <div id="cardSearchAutoComplete"></div>
         </div>
+
+
         <p id="error">&nbsp;</p>
         <div class="main">
           <div class="card">
@@ -250,27 +251,16 @@
                 <path d="M20 17H4" />
               </svg>
             </button>
+
+            <hr>
+
             <button
-              id="search"
-              data-target="search-model"
-              onClick="toggleModal(event);openSearchModel()"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="lucide lucide-search"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
-            </button>
+            data-target="deck-model"
+            onClick="toggleModal(event);fillDeck()"
+            id="view"
+          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
             <button id="copy" onclick="copyClipboard()">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -293,11 +283,13 @@
                 <path d="m15 10-4 4 4 4" />
               </svg>
             </button>
+
           </div>
         </div>
       </div>
     </div>
     <script>
+      let searchMode = false;
       let toDeleteIndex;
       let allNames = false;
       let clipboard = [];
@@ -306,7 +298,7 @@
         foil: "Foil",
         remove: "Remove",
         printings: "Switch card printing",
-        search: "Search by card name",
+        view: "View your entire deck",
       };
       const lands = {
         plains: 0,
@@ -334,6 +326,94 @@
             uploadCard(document.getElementById("input"));
           }
         });
+
+      // SEARCH FUNCTIONS
+      async function searchToggle() {
+        searchMode = !searchMode;
+        if(searchMode) {
+          document.getElementById("searchButton").classList.add("searchModeButton");
+
+          document.getElementById("input").value = "";
+          if (!allNames) {
+            allNames = await getJSON(
+              "https://api.scryfall.com/catalog/card-names"
+            );
+            allNames = allNames.data;
+          }
+
+        document.getElementById("input").focus();
+        } else {
+          document.getElementById("searchButton").classList.remove("searchModeButton");
+          document.getElementById("cardSearchAutoComplete").innerHTML = "";
+          document.getElementById("input").value = "";
+          document.getElementById("input").focus();
+        }
+      }
+      async function searchInput(el) {
+        if(!searchMode) {
+          return;
+        }
+        let input = el.value.toLowerCase().split(/\s+/);
+        const filtered = allNames.filter(function (name) {
+          for (var keyword of input) {
+            if (!name.toLowerCase().includes(keyword)) {
+              return false;
+            }
+          }
+          return true;
+        });
+        let max = filtered.length < 10 ? filtered.length : 10;
+        let autoFeild = "";
+        for (var i = 0; i < max; i++) {
+          autoFeild += `
+                        <div
+               onclick="addCardFromSearch(this.innerText)">${filtered[i]}</div>
+                        `;
+        }
+        document.getElementById("cardSearchAutoComplete").innerHTML = autoFeild;
+      }
+      async function addCardFromSearch(name) {
+        document.getElementById("cardSearchAutoComplete").innerHTML = "";
+        const card = await getJSON(
+          `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(
+            name
+          )}`
+        );
+        let foil = false;
+        const set = card.set;
+        const cn = card.collector_number;
+        let url = card.image_uris
+          ? card.image_uris.large
+          : card.card_faces[0].image_uris.large;
+        const finishes = card.finishes;
+        if (!finishes.includes("foil") || !finishes.includes("nonfoil")) {
+          document.getElementById("foil").disabled = true;
+          foil = finishes.includes("foil");
+        } else {
+          document.getElementById("foil").disabled = false;
+        }
+        if (foil) {
+          document.getElementById("img").classList.add("foil");
+          document.getElementById("foil").classList.add("foil");
+        } else {
+          document.getElementById("img").classList.remove("foil");
+          document.getElementById("foil").classList.remove("foil");
+        }
+
+        appear(url);
+        clipboard.push({
+          name: name,
+          set: set,
+          cn: cn,
+          foil: foil,
+          switchURL: card.prints_search_uri,
+        });
+        document.getElementById("allPrints").innerHTML='';
+        if((await getJSON(card.prints_search_uri)).total_cards > 1) {
+          openModal(document.getElementById("switch-printings-model"))
+          switchPrintings()
+        }
+      }
 
       async function uploadCard(input) {
         let value = input.value.trim();
@@ -462,7 +542,7 @@
           .join("\n") + "\n";
           for(var land of Object.keys(lands)) {
             if(lands[land] != 0) {
-              text += "x" + lands[land] + " " + land + "\n";
+              text += lands[land] + "x " + land + "\n";
             }
           }
         navigator.clipboard.writeText(text).then(
@@ -587,76 +667,6 @@
         clipboardLast().cn = cn;
         clipboardLast().set = set;
         clipboardLast().foil = isFoil;
-      }
-
-      async function searchInput(el) {
-        let input = el.value.toLowerCase().split(/\s+/);
-        const filtered = allNames.filter(function (name) {
-          for (var keyword of input) {
-            if (!name.toLowerCase().includes(keyword)) {
-              return false;
-            }
-          }
-          return true;
-        });
-        let max = filtered.length < 10 ? filtered.length : 10;
-        let autoFeild = "";
-        for (var i = 0; i < max; i++) {
-          autoFeild += `
-                        <div onclick="addCardFromSearch(this.innerText);toggleModal(event);" data-target="search-model">${filtered[i]}</div>
-                        `;
-        }
-        document.getElementById("cardSearchAutoComplete").innerHTML = autoFeild;
-      }
-
-      async function openSearchModel() {
-        document.getElementById("cardSearch").value = "";
-        document.getElementById("cardSearchAutoComplete").innerHTML = "";
-        if (!allNames) {
-          allNames = await getJSON(
-            "https://api.scryfall.com/catalog/card-names"
-          );
-          allNames = allNames.data;
-        }
-        document.getElementById("cardSearch").focus();
-      }
-
-      async function addCardFromSearch(name) {
-        const card = await getJSON(
-          `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(
-            name
-          )}`
-        );
-        let foil = false;
-        const set = card.set;
-        const cn = card.collector_number;
-        console.log(card);
-        let url = card.image_uris
-          ? card.image_uris.large
-          : card.card_faces[0].image_uris.large;
-        const finishes = card.finishes;
-        if (!finishes.includes("foil") || !finishes.includes("nonfoil")) {
-          document.getElementById("foil").disabled = true;
-          foil = finishes.includes("foil");
-        } else {
-          document.getElementById("foil").disabled = false;
-        }
-        if (foil) {
-          document.getElementById("img").classList.add("foil");
-          document.getElementById("foil").classList.add("foil");
-        } else {
-          document.getElementById("img").classList.remove("foil");
-          document.getElementById("foil").classList.remove("foil");
-        }
-
-        appear(url);
-        clipboard.push({
-          name: name,
-          set: set,
-          cn: cn,
-          foil: foil,
-          switchURL: card.prints_search_uri,
-        });
       }
 
       function createToolTip(el, text) {

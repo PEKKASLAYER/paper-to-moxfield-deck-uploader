@@ -84,6 +84,9 @@
   button.foil {
     background-color: var(--secondary);
   }
+  .searchModeButton{
+    background-color: #7cb342;
+  }
 
   #notification {
     opacity: 0%;
@@ -140,18 +143,16 @@
   #fullDeck img:hover {
     outline: 1px solid #e53935;
   }
-
-  #cardSearch,
-  #cardSearchAutoComplete {
-    width: 80%;
-    display: block;
-    margin: 0px auto;
-  }
   #cardSearchAutoComplete {
     overflow-y: auto;
-    height: 300px;
-    display: flex;
+    max-height: 300px;
+    width: 72%;
+    position: absolute;
+    z-index:99;
+    display:flex;
     flex-direction: column;
+    justify-content: start;
+    margin-top:62px;
   }
   #cardSearchAutoComplete div {
     background-color: var(--card-background-color);
