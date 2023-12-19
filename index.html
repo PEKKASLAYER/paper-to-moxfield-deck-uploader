@@ -340,14 +340,12 @@
             );
             allNames = allNames.data;
           }
-
-        document.getElementById("input").focus();
         } else {
           document.getElementById("searchButton").classList.remove("searchModeButton");
           document.getElementById("cardSearchAutoComplete").innerHTML = "";
           document.getElementById("input").value = "";
-          document.getElementById("input").focus();
         }
+        document.getElementById("input").focus();
       }
       async function searchInput(el) {
         if(!searchMode) {
@@ -667,6 +665,7 @@
         clipboardLast().cn = cn;
         clipboardLast().set = set;
         clipboardLast().foil = isFoil;
+        document.getElementById("input").focus();
       }
 
       function createToolTip(el, text) {
